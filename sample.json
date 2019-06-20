@@ -1,10 +1,10 @@
 {
-    "name": "IITA_Casava",
-    "workDir": "work/tests/missing_soils",
+    "name": "IITA_Cassava",
+    "workDir": "work",
     "templateDir": "data/templates",
     "threads": 50,
-    "sample": 300,
-    "weatherDir":"data/weathers",
+    "sample": 1,
+    "weatherDir":"data/weathers/nigeria/DSSAT_WTH",
     "default_setup": {
         "template": "NGSP0000.CSX",
         "sites": "xy_from_vector::data/shapes/Nigeria_shapefile.shp",
@@ -20,7 +20,7 @@
         "ic_layers":"generate_ic_layers::$id_soil"
     },
     "dssat": {
-        "executable": "~/dssat47/dscsm047",
+        "executable": "C:/DSSAT47/dscsm047",
 	"mode":"B",
 	"batchFile":"PIXEL.v47"
     },
@@ -40,7 +40,7 @@
     "runs": [
         {
             "name": "cassava",
-            "analysis_outfile": "outputs/unity/sorghum_yearly.csv"
+            "analysis_outfile": "outputs/unity/cassava.csv"
         }
     ]
 }

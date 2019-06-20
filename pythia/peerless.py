@@ -126,7 +126,7 @@ def compose_peerless(ctx):
                     "                                      TRTNO     RP     "
                     "SQ     OP     CO\n")
                 for out_suffix, treatments in enumerate(
-                        split_levels(context["factors"], 99)):
+                        split_levels(context["factors"], 23)):
                     for trtno in range(len(treatments)):
                         filename = "NGSP00{:>02d}.CSX".format(out_suffix)
                         f.write("{:<94s}{:>5d}      1      0      0      0\n".
