@@ -95,9 +95,10 @@ def compose_peerless(ctx):
         this_output_dir = os.path.join(context["workDir"], y, x)
         pythia.io.make_run_directory(this_output_dir)
         if dssat_mode == "B":
+            batch_chunks = config["dssat"].get("batch_chunks", 99)
             symlink_wth_soil(this_output_dir, config, context)
         for out_suffix, split in enumerate(split_levels(
-                context["factors"], 23)):
+                context["factors"], batch_chunks)):
             if dssat_mode == "A":
                 this_output_dir = os.path.join(this_output_dir,
                                                str(out_suffix))
@@ -126,7 +127,7 @@ def compose_peerless(ctx):
                     "                                      TRTNO     RP     "
                     "SQ     OP     CO\n")
                 for out_suffix, treatments in enumerate(
-                        split_levels(context["factors"], 23)):
+                        split_levels(context["factors"], batch_chunks)):
                     for trtno in range(len(treatments)):
                         filename = "NGSP00{:>02d}.CSX".format(out_suffix)
                         f.write("{:<94s}{:>5d}      1      0      0      0\n".

@@ -3,7 +3,7 @@
     "workDir": "work",
     "templateDir": "data/templates",
     "threads": 50,
-    "sample": 1,
+    "sample": 2,
     "weatherDir":"data/weathers/nigeria/DSSAT_WTH",
     "default_setup": {
         "template": "NGSP0000.CSX",
