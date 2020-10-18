@@ -1,4 +1,4 @@
-name: pythia
+name: pythia-dev
 channels:
   - defaults
 dependencies:
