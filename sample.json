@@ -3,7 +3,7 @@
     "workDir": "work",
     "templateDir": "data/templates",
     "weatherDir": "data/weathers/nigeria/DSSAT_WTH",
-    "sample": 10,
+    "sample": 2,
     "threads": 8,
     "cores": 16,
     "ghr_root": "data/base/GHR",
@@ -28,10 +28,6 @@
     "default_analytics": {
         "per_pixel_prefix": "pp",
         "singleOutput": true,
-        "calculatedColumns": {
-            "VNAM": "subtract::$cnam::$gnam",
-            "VWAM": "subtract::$cwam::$pwam"
-        },
         "columns": [
             "LATITUDE",
             "LONGITUDE",
@@ -44,9 +40,7 @@
             "HWAH",
             "GNAM",
             "CWAM",
-            "PRCP",
-            "VNAM",
-            "VWAM"
+            "PRCP"
         ]
     },
     "runs": [
