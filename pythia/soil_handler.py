@@ -116,27 +116,18 @@ def calculateWeightingFactor(slbdm, thickness, df):
     return [slbdm[i] * thickness[i] * df[i] for i in range(len(slbdm))]
 
 
-def calculateSoilLayerMass(slbdm, thickness):
-    return sum([slbdm[i] * thickness[i] * 100000 for i in range(len(slbdm))])
-
-
-def calculateNConcentration(n, mass):
-    return (n / mass) * 1000000
-
-
 def calculateICNTOT(wf, n, twf):
     return [f * n / twf for f in wf]
 
 
-def calculateNDist(nconc, sbdm):
-    return [nconc] * len(sbdm)
+def calculateNDist(icn, sbdm, thickness):
+    return [icn[i] / sbdm[i] / thickness[i] for i in range(len(icn))]
 
 
 def calculateH2O(fractionalAW, slll, sdul):
     h2o = []
-    fAW = fractionalAW / 100.0
     for i, ll in enumerate(slll):
-        h2o.append((fAW * (sdul[i] - ll)) + ll)
+        h2o.append((fractionalAW * (sdul[i] - ll)) + ll)
     return h2o
 
 
@@ -147,14 +138,23 @@ def calculateICLayerData(soilData, run):
     sdul = [float(v) for v in soilData["SDUL"]]
 
     thickness = calculateSoilThickness(slb)
-    soil_mass = calculateSoilLayerMass(sbdm, thickness)
-    nconc = calculateNConcentration(run["icin"], soil_mass)
-    icndist = calculateNDist(nconc, sbdm)
+    mp = calculateSoilMidpoint(slb)
+    tf = calculateTopFrac(slb, thickness)
+    bf = calculateBotFrac(slb, thickness)
+    mf = calculateMidFrac(tf, bf)
+    df = calculateDepthFactor(mp, tf, mf)
+    wf = calculateWeightingFactor(sbdm, thickness, df)
+
+    # tsbdm = sum([thickness[i] * sbdm[i] for i in range(len(thickness))])
+    twf = sum(wf)
+    ictot = calculateICNTOT(wf, run["initialN"], twf)
+    icndist = calculateNDist(ictot, sbdm, thickness)
 
     return transpose(
         [
             soilData["SLB"],
-            calculateH2O(run["icsw%"], slll, sdul),
-            [icnd * 0.1 for icnd in icndist],
-            [icnd * 0.9 for icnd in icndist],
-        ])
+            calculateH2O(run["fractionalAW"], slll, sdul),
+            [icnd * 10 * 0.1 for icnd in icndist],
+            [icnd * 10 * 0.9 for icnd in icndist],
+        ]
+    )

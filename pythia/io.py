@@ -1,61 +1,45 @@
 import os
 
 import fiona
-import numpy.ma as ma
 import rasterio
-from shapely.geometry import Point, MultiPoint
-from shapely.ops import nearest_points
 
 import pythia.functions
 import pythia.util
 
-"""rasterio reads x/y which is longitude/latitude"""
+"""longitude/latitude"""
 
 
-def get_site_raster_value(dataset, band, site):
-    lng, lat = site
-    row, col = dataset.index(lng, lat)
-    data = []
-    try:
-        data = band[row, col]
-        if (data is ma.masked):
-            data = None
-    except IndexError:
-        data = None
-    return data
+def _get_site_raster_value(dataset, band, site):
+    y, x = site
+    row, col = dataset.index(y, x)
+    return band[row, col]
 
 
 def peer(run, sample_size=None):
     rasters = pythia.util.get_rasters_dict(run)
-    sites = []
-    if isinstance(run["sites"], list):
-        sites = pythia.functions.xy_from_list(run["sites"])
-    else:
-        sites = pythia.functions.xy_from_vector(run["sites"])
+    sites = pythia.functions.xy_from_vector(run["sites"])
     data = []
+    nodata = []
     layers = list(rasters.keys())
     for raster in rasters.values():
         with rasterio.open(raster) as ds:
-            band = ds.read(1, masked=True)
-            data.append([get_site_raster_value(ds, band, site) for site in sites])
-    peerless = list(
-        filter(
-            lambda x: x is not None,
-            [read_layer_by_cell(i, data, layers, sites) for i in range(len(sites))],
-        )
-    )
+            if "int" in ds.dtypes[0]:
+                nodata.append(int(ds.nodatavals[0]))
+            else:
+                nodata.append(ds.nodatavals[0])
+            band = ds.read(1)
+            data.append([_get_site_raster_value(ds, band, site)
+                         for site in sites])
+    peerless = list(filter(lambda x: x is not None, [read_layer_by_cell(
+        i, data, nodata, layers, sites) for i in range(len(sites))]))
     return peerless[:sample_size]
 
 
-def read_layer_by_cell(idx, data, layers, sites):
-    if data is None:
-        return None
-    lng, lat = sites[idx]
-    cell = {"lat": lat, "lng": lng, "xcrd": lng, "ycrd": lat}
+def read_layer_by_cell(idx, data, nodata, layers, sites):
+    y, x = sites[idx]
+    cell = {"lat": y, "lng": x}
     for i, c in enumerate(data):
-        if c[idx] is None:
-            return None
-        if layers[i] == "harvestArea" and c[idx] == 0:
+        if c[idx] == nodata[i]:
             return None
         else:
             cell[layers[i]] = c[idx]
@@ -78,7 +62,7 @@ def get_shp_profile(f):
 
 def extract_vector_coords(f):
     points = []
-    with fiona.open(f, 'r') as source:
+    with fiona.open(f) as source:
         for feature in source:
             if feature["geometry"]["type"] == "MultiPoint":
                 points.append(feature["geometry"]["coordinates"][0])
@@ -87,9 +71,9 @@ def extract_vector_coords(f):
     return points
 
 
-def find_vector_coords(f, lng, lat, a):
-    coords = (lng, lat)
-    with fiona.open(f, 'r') as source:
+def find_vector_coords(f, x, y, a):
+    coords = (y, x)
+    with fiona.open(f) as source:
         for feature in source:
             if feature["geometry"]["type"] == "MultiPoint":
                 if coords in feature["geometry"]["coordinates"]:
@@ -97,23 +81,3 @@ def find_vector_coords(f, lng, lat, a):
             if feature["geometry"]["type"] == "Point":
                 if coords == feature["geometry"]["coordinates"]:
                     return feature["properties"][a]
-
-
-def find_closest_vector_coords(f, lng, lat, a):
-    coords = Point(lng, lat)
-    points = []
-    ids = []
-    with fiona.open(f, 'r') as source:
-        for feature in source:
-            if feature["geometry"]["type"] == "MultiPoint":
-                points.extend([Point(p[0], p[1]) for p in feature["geometry"]["coordinates"]])
-                ids.extend([feature["properties"][a]] * len(feature["geometry"]["coordinates"]))
-            if feature["geometry"]["type"] == "Point":
-                points.append(
-                    Point(feature["geometry"]["coordinates"][0],
-                          feature["geometry"]["coordinates"][1])
-                )
-                ids.append(feature["properties"][a])
-    mp = MultiPoint(points)
-    nearest = nearest_points(coords, mp)[1]
-    return ids[points.index(nearest)]
