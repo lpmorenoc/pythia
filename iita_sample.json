@@ -1,0 +1,68 @@
+{
+    "name": "IITA_Sample",
+    "workDir": "/work/outputs",
+    "templateDir": "/data/templates",
+    "weatherDir": "/data/weathers/nigeria/DSSAT_WTH",
+	"sample": 2,
+    "threads":8,
+    "cores":16,
+    "ghr_root":"/data/base/GHR",
+    "plugins":[{
+        "plugin": "sensitivity_plugin",
+        "params": {
+            "pdate": {
+                "method": "date_offset",
+                "values": [0,14,28],
+                "hook": "post_build_context"
+            },
+            "hdate": {
+                "method": "date_offset",
+                "values": [293, 300, 307],
+                "from": "pdate",
+                "hook": "post_build_context"
+            },
+            "sdate": {
+                "comment": "Start date is set to 30 days before planting date",
+                "method": "date_offset",
+                "value": -30,
+                "from": "pdate",
+                "hook": "post_build_context",
+                "static": true
+            }
+
+        }
+    }
+    ],
+    "default_setup": {
+        "template": "NGSP0000.CSX",
+        "sites": "xy_from_vector::data/shapes/Nigeria_shapefile.shp",
+        "nyers": 32,
+        "icin": 10,
+        "icsw%": 25,
+        "flhst":"FH302",
+        "fhdur": 10,
+        "icren": 0.8,
+        "pdate": "1984-01-01",
+	"hdate": "1985-01-01",
+	"sdate": "1984-01-01",
+        "id_soil": "lookup_ghr::raster::/data/rasters/iita_nigeria_ghr.tif",
+        "wsta": "lookup_wth::IITA::vector::data/shapes/Nigeria_shapefile.shp::CellID",
+        "ic_layers": "generate_ic_layers::$id_soil",
+        "ramt": 0
+    },
+    "dssat": {
+        "executable": "C:/DSSAT47/dscsm047"
+    },
+    "analytics_setup": {
+        "per_pixel_prefix":"pp_",
+	"singleOutput": true
+    },
+    "runs": [
+        {
+			"name": "cassava",
+            "analysis_outfile": "outputs/unity/cassava.csv"
+        }
+        
+    ]
+}
+
